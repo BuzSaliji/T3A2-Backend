@@ -9,7 +9,7 @@ async function comparePassword(plaintextPassword, hashedPassword) {
 	return doesPasswordMatch;
 }
 
-function generateJwt(userId){
+function generateJwt(userID){
 
 	let newJwt = jwt.sign(
 		// Payload
@@ -29,7 +29,11 @@ function generateJwt(userId){
 	return newJwt;
 }
 
+async function hashPassword(password) {
+    const salt = await bcrypt.genSalt(10);
+    return bcrypt.hash(password, salt);
+}
 
 module.exports = {
-	comparePassword, generateJwt
-}
+    comparePassword, generateJwt, hashPassword
+};

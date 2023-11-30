@@ -1,6 +1,6 @@
 // import Express library
 const express = require('express');
-const { user } = require('../models/UserModel');
+const { User } = require('../models/UserModel');
 const { comparePassword, generateJwt } = require('../functions/userAuthFunctions');
 
 // make an instance of a Router
@@ -76,5 +76,36 @@ router.delete("/:id", async (request, response) => {
 router.patch("/:id", async (request, response) => {
 
 })
+
+router.post("/register", async (request, response) => {
+    try {
+        const { username, email, password } = request.body;
+
+        // Check if user already exists
+        const existingUser = await User.findOne({ $or: [{ username }, { email }] });
+        if (existingUser) {
+            return response.status(400).json({ error: "Username or email already in use" });
+        }
+
+        // Hash the password
+        const hashedPassword = await hashPassword(password);
+
+        // Create a new user
+        const newUser = new User({
+            username,
+            email,
+            password: hashedPassword
+        });
+
+        await newUser.save();
+
+        // Generate JWT
+        const jwt = generateJwt(newUser._id.toString());
+
+        response.status(201).json({ jwt });
+    } catch (error) {
+        response.status(500).json({ error: error.message });
+    }
+});
 
 module.exports = router;
