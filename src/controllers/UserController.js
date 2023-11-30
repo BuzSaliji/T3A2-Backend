@@ -2,6 +2,7 @@
 const express = require('express');
 const { User } = require('../models/UserModel');
 const { comparePassword, generateJwt } = require('../functions/userAuthFunctions');
+const authMiddleware = require('../middleware/authMiddleware');
 
 // make an instance of a Router
 const router = express.Router();
@@ -10,24 +11,40 @@ const router = express.Router();
 
 
 router.get("/", async (request, response) => {
-    let result = await User.find({});
+    try {
+        let result = await User.find({});
+        response.json({ result });
+    } catch (error) {
+        response.status(500).json({ error: error.message });
+    }
+});
 
-	response.json({result});
-})
 
 // GET localhost:3000/users/laijhjsdaljfdhbsal
 router.get("/:id", async (request, response) => {
-    let result = await User.findOne({_id: request.params.id});
+    try {
+        let result = await User.findOne({ _id: request.params.id });
+        if (result) {
+            response.json({ result });
+        } else {
+            response.status(404).json({ message: "User not found" });
+        }
+    } catch (error) {
+        response.status(500).json({ error: error.message });
+    }
+});
 
-	response.json({result});
-})
 
 // POST localhost:3000/users/
 router.post("/", async (request, response) => {
-    let newUser = await User.create(request.body).catch(error => error);
+    try {
+        let newUser = await User.create(request.body);
+        response.status(201).json(newUser);
+    } catch (error) {
+        response.status(400).json({ error: error.message });
+    }
+});
 
-	response.json(newUser);
-})
 
 // POST localhost:3000/users/login
 // request.body = {username: "admin", password: "Password1"}
@@ -56,25 +73,83 @@ router.post("/login", async (request, response) => {
 // JWT in request.headers["jwt"] or request.headers["authorization"]
 // respond with {jwt: "laskdnalksfdnal;fgvkmsngb;sklnmb", valid: true}
 router.get("/verify", async (request, response) => {
+    try {
+        const token = request.headers['jwt'] || request.headers['authorization'];
+        if (!token) {
+            return response.status(401).json({ error: "No token provided" });
+        }
 
-})
+        const decoded = jwt.verify(token, process.env.JWT_KEY);
+        response.json({ jwt: token, valid: true });
+    } catch (error) {
+        response.status(400).json({ error: "Invalid token" });
+    }
+});
+
 
 // GET localhost:3000/users/regenerate
 // JWT in request.headers["jwt"] or request.headers["authorization"]
 // respond with {jwt: "laskdnalksfdnal;fgvkmsngb;sklnmb", valid: true}
 router.get("/regenerate", async (request, response) => {
+    try {
+        const token = request.headers['jwt'] || request.headers['authorization'];
+        if (!token) {
+            return response.status(401).json({ error: "No token provided" });
+        }
 
-})
+        const decoded = jwt.verify(token, process.env.JWT_KEY);
+        const newJwt = generateJwt(decoded.userID);
+
+        response.json({ jwt: newJwt });
+    } catch (error) {
+        response.status(400).json({ error: "Invalid token" });
+    }
+});
+
 
 // DELETE localhost:3000/users/fghfdfds
-router.delete("/:id", async (request, response) => {
+router.delete("/:id", authMiddleware, async (request, response) => {
+    try {
+        const userId = request.params.id;
+        const requestingUser = request.user; // Assuming `request.user` is set by a middleware
 
-})
+        // Check if the requesting user is the owner or an admin
+        if (requestingUser.id !== userId && !requestingUser.isAdmin) {
+            return response.status(403).json({ error: "Unauthorized" });
+        }
+
+        const user = await User.findByIdAndDelete(userId);
+        if (!user) {
+            return response.status(404).json({ error: "User not found" });
+        }
+        response.json({ message: "User deleted successfully" });
+    } catch (error) {
+        response.status(500).json({ error: error.message });
+    }
+});
+
 
 
 // PATCH localhost:3000/users/fghfdfds
-router.patch("/:id", async (request, response) => {
+router.patch("/:id", authMiddleware, async (request, response) => {
+    try {
+        const userId = request.params.id;
+        const requestingUser = request.user; // Assuming `request.user` is set by a middleware
 
+        // Check if the requesting user is the owner or an admin
+        if (requestingUser.id !== userId && !requestingUser.isAdmin) {
+            return response.status(403).json({ error: "Unauthorized" });
+        }
+
+        const updates = request.body;
+        const user = await User.findByIdAndUpdate(userId, updates, { new: true });
+        if (!user) {
+            return response.status(404).json({ error: "User not found" });
+        }
+        response.json(user);
+    } catch (error) {
+        response.status(500).json({ error: error.message });
+    }
 })
 
 router.post("/register", async (request, response) => {
