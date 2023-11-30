@@ -183,4 +183,42 @@ router.post("/register", async (request, response) => {
     }
 });
 
+// Search by username
+router.get("/search/username", async (request, response) => {
+    try {
+        const { username } = request.query;
+        if (!username) {
+            return response.status(400).json({ error: "Username query parameter is required" });
+        }
+
+        const user = await User.findOne({ username: username });
+        if (!user) {
+            return response.status(404).json({ message: "User not found" });
+        }
+
+        response.json(user);
+    } catch (error) {
+        response.status(500).json({ error: error.message });
+    }
+});
+
+// Search by email
+router.get("/search/email", async (request, response) => {
+    try {
+        const { email } = request.query;
+        if (!email) {
+            return response.status(400).json({ error: "Email query parameter is required" });
+        }
+
+        const user = await User.findOne({ email: email });
+        if (!user) {
+            return response.status(404).json({ message: "User not found" });
+        }
+
+        response.json(user);
+    } catch (error) {
+        response.status(500).json({ error: error.message });
+    }
+});
+
 module.exports = router;
