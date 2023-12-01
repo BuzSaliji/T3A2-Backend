@@ -11,6 +11,5 @@ app.get("/", (req, res) => {
 
 const userController = require('./controllers/UserController');
 app.use("/users", userController);
-app.use("/register", userController);
 
 module.exports = { app }

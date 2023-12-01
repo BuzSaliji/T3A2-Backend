@@ -2,7 +2,7 @@
 const express = require('express');
 const { User } = require('../models/UserModel');
 const { comparePassword, generateJwt } = require('../functions/userAuthFunctions');
-const authMiddleware = require('../middleware/authMiddleware');
+const authMiddleware = require('../functions/authMiddleware');
 
 // make an instance of a Router
 const router = express.Router();
@@ -49,25 +49,48 @@ router.post("/", async (request, response) => {
 // POST localhost:3000/users/login
 // request.body = {username: "admin", password: "Password1"}
 // respond with {jwt: "laskdnalksfdnal;fgvkmsngb;sklnmb", valid: true}
+// POST localhost:3000/users/login
+// request.body = {identifier: "admin", password: "Password1"}
+// respond with {jwt: "laskdnalksfdnal;fgvkmsngb;sklnmb", valid: true}
 router.post("/login", async (request, response) => {
-        // Find user by provided username 
-	let targetUser = await User.findOne({username: request.body.username}).catch(error => error);
+    try {
+        let { username, email, password } = request.body;
+        let query = {};
 
-	// Check if user provided the correct password
-	let isPasswordCorrect = await comparePassword(request.body.password, targetUser.password);
+        if (email) {
+            query.email = email;
+        } else if (username) {
+            query.username = username;
+        } else {
+            return response.status(400).json({ error: "Username or email required" });
+        }
 
-	if (!isPasswordCorrect){
-		response.status(403).json({error:"You are not authorised to do this!"});
-	}
+        // Find user by username or email
+        let targetUser = await User.findOne(query);
 
-	// If they provided the correct, generate a JWT
-	let freshJwt = generateJwt(targetUser._id.toString());
+        if (!targetUser) {
+            return response.status(404).json({ error: "User not found" });
+        }
 
-	// respond with the JWT 
-	response.json({
-		jwt: freshJwt
-	});
+        // Check if user provided the correct password
+        let isPasswordCorrect = await comparePassword(password, targetUser.password);
+
+        if (!isPasswordCorrect) {
+            return response.status(403).json({ error: "Invalid password" });
+        }
+
+        // If they provided the correct password, generate a JWT
+        let freshJwt = generateJwt(targetUser._id.toString());
+
+        // Respond with the JWT 
+        response.json({ jwt: freshJwt });
+    } catch (error) {
+        response.status(500).json({ error: error.message });
+    }
 });
+
+
+
 
 // GET localhost:3000/users/verify
 // JWT in request.headers["jwt"] or request.headers["authorization"]
@@ -152,36 +175,6 @@ router.patch("/:id", authMiddleware, async (request, response) => {
     }
 })
 
-router.post("/register", async (request, response) => {
-    try {
-        const { username, email, password } = request.body;
-
-        // Check if user already exists
-        const existingUser = await User.findOne({ $or: [{ username }, { email }] });
-        if (existingUser) {
-            return response.status(400).json({ error: "Username or email already in use" });
-        }
-
-        // Hash the password
-        const hashedPassword = await hashPassword(password);
-
-        // Create a new user
-        const newUser = new User({
-            username,
-            email,
-            password: hashedPassword
-        });
-
-        await newUser.save();
-
-        // Generate JWT
-        const jwt = generateJwt(newUser._id.toString());
-
-        response.status(201).json({ jwt });
-    } catch (error) {
-        response.status(500).json({ error: error.message });
-    }
-});
 
 // Search by username
 router.get("/search/username", async (request, response) => {
