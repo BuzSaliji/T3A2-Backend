@@ -1,15 +1,27 @@
 const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+
+// Import routes
+const userRoutes = require('./controllers/UserController');
+const courtRoutes = require('./controllers/CourtController');
 
 // make server instance
 const app = express();
 
+// Middlewares
+app.use(cors());
+app.use(helmet());
 app.use(express.json());
 
-app.get("/", (req, res) => {
-    express.response.json({ message: "Hello World" });
-});
+// Use routes
+app.use('/users', userRoutes);
+app.use('/courts', courtRoutes);
 
-const userController = require('./controllers/UserController');
-app.use("/users", userController);
+
+app.get('/', (req, res) => {
+    res.send('Welcome to the Court Connect API');
+  });
+
 
 module.exports = { app }
