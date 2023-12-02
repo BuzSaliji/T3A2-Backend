@@ -47,9 +47,6 @@ router.post("/", async (request, response) => {
 
 
 // POST localhost:3000/users/login
-// request.body = {username: "admin", password: "Password1"}
-// respond with {jwt: "laskdnalksfdnal;fgvkmsngb;sklnmb", valid: true}
-// POST localhost:3000/users/login
 // request.body = {identifier: "admin", password: "Password1"}
 // respond with {jwt: "laskdnalksfdnal;fgvkmsngb;sklnmb", valid: true}
 router.post("/login", async (request, response) => {
