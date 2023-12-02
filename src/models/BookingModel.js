@@ -25,7 +25,6 @@ const bookingSchema = new mongoose.Schema({
             required: true
         }
     },
-    // Additional attributes like booking status, payment details, etc., can be added here
 });
 
 const Booking = mongoose.model('Booking', bookingSchema);
