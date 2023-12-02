@@ -1,6 +1,6 @@
 const express = require('express');
-const { Court } = require('../models/CourtModel'); // Adjust the path as necessary
-const authMiddleware = require('../functions/authMiddleware'); // If you have authentication middleware
+const { Court } = require('../models/CourtModel');
+const authMiddleware = require('../functions/authMiddleware'); 
 
 const router = express.Router();
 

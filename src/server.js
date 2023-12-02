@@ -5,6 +5,7 @@ const helmet = require('helmet');
 // Import routes
 const userRoutes = require('./controllers/UserController');
 const courtRoutes = require('./controllers/CourtController');
+const bookingRoutes = require('./controllers/BookingController');
 
 // make server instance
 const app = express();
@@ -17,6 +18,7 @@ app.use(express.json());
 // Use routes
 app.use('/users', userRoutes);
 app.use('/courts', courtRoutes);
+app.use('/bookings', bookingRoutes);
 
 
 app.get('/', (req, res) => {
