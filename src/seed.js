@@ -13,7 +13,7 @@ databaseConnect().then(async () => {
         username: "AdminUser",
         email: "admin@email.com",
         password: "AdminPassword1",
-        isAdmin: true // Assuming your User model has an 'isAdmin' field
+        isAdmin: true 
     };
 
     // Hash the password

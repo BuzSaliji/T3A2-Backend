@@ -72,4 +72,6 @@ router.delete('/:id', authMiddleware, isAdmin, async (req, res) => {
     }
 });
 
+
+
 module.exports = router;
