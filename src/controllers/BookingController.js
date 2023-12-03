@@ -33,12 +33,31 @@ router.get('/:id', async (req, res) => {
 // Create a new booking
 router.post('/', async (req, res) => {
   try {
-    // Add logic to check for court availability, user eligibility, etc.
-    const newBooking = new Booking(req.body);
-    await newBooking.save();
-    res.status(201).json(newBooking);
+    const { userId, courtId, date, startTime, endTime } = req.body;
+
+     // Basic validation
+     if (!userId || !courtId || !date || !startTime || !endTime) {
+      return res.status(400).json({ error: 'All fields are required.' });
+    }
+
+    // Check if the court is already booked for the given time slot
+    const existingBooking = await Booking.findOne({
+      court: courtId,
+      date,
+      timeSlot: {
+        $overlap: [startTime, endTime]
+      }
+    });
+
+    if (existingBooking) {
+      return res.status(400).json({ error: 'Court is already booked for this time slot.' });
+    }
+
+    // Create the booking
+    const newBooking = await Booking.create({ userId, courtId, date, startTime, endTime });
+    res.json(newBooking);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
 });
 

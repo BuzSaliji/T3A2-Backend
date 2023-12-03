@@ -7,18 +7,16 @@ const authMiddleware = require('../functions/authMiddleware');
 // make an instance of a Router
 const router = express.Router();
 
-// import the User model
 
-
-router.get("/", async (request, response) => {
-    try {
-        let result = await User.find({});
-        response.json({ result });
-    } catch (error) {
-        response.status(500).json({ error: error.message });
+// GET all users (Admin only)
+router.get('/', authMiddleware, async (req, res) => {
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ error: 'Access denied.' });
     }
-});
-
+  
+    const users = await User.find({});
+    res.json(users);
+  });
 
 // GET localhost:3000/users/laijhjsdaljfdhbsal
 router.get("/:id", async (request, response) => {
@@ -171,6 +169,17 @@ router.patch("/:id", authMiddleware, async (request, response) => {
         response.status(500).json({ error: error.message });
     }
 })
+
+// PATCH update user role (Admin only)
+router.patch('/:id/role', authMiddleware, async (req, res) => {
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ error: 'Access denied.' });
+    }
+  
+    const { role } = req.body;
+    const user = await User.findByIdAndUpdate(req.params.id, { role }, { new: true });
+    res.json(user);
+  });
 
 
 // Search by username
