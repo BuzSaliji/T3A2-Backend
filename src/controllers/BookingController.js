@@ -1,11 +1,21 @@
 const express = require('express');
 const { Booking } = require('../models/BookingModel');
-const authMiddleware = require('../middleware/authMiddleware'); // Assuming you have authentication middleware
+const authMiddleware = require('../functions/authMiddleware');
+
 
 const router = express.Router();
 
 // Middleware to authenticate and authorize users
 router.use(authMiddleware);
+
+// Middleware to check if the user is an admin
+const isAdmin = (req, res, next) => {
+  if (!req.user.isAdmin) {
+      return res.status(403).json({ error: 'Access denied' });
+  }
+  next();
+};
+
 
 // Get all bookings
 router.get('/', async (req, res) => {
@@ -62,7 +72,7 @@ router.post('/', async (req, res) => {
 });
 
 // Update a booking
-router.patch('/:id', async (req, res) => {
+router.patch('/:id', isAdmin,  async (req, res) => {
   try {
     const updatedBooking = await Booking.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!updatedBooking) {
@@ -75,7 +85,7 @@ router.patch('/:id', async (req, res) => {
 });
 
 // Delete a booking
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', isAdmin, async (req, res) => {
   try {
     const deletedBooking = await Booking.findByIdAndDelete(req.params.id);
     if (!deletedBooking) {

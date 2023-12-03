@@ -36,7 +36,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create a new court (Admin only)
-router.post('/', authMiddleware, isAdmin, async (req, res) => {
+router.post('/', isAdmin, async (req, res) => {
     try {
         const newCourt = new Court(req.body);
         await newCourt.save();
@@ -47,7 +47,7 @@ router.post('/', authMiddleware, isAdmin, async (req, res) => {
 });
 
 // Update a court (Admin only)
-router.patch('/:id', authMiddleware, isAdmin, async (req, res) => {
+router.patch('/:id', isAdmin, async (req, res) => {
     try {
         const court = await Court.findByIdAndUpdate(req.params.id, req.body, { new: true });
         if (!court) {
@@ -60,7 +60,7 @@ router.patch('/:id', authMiddleware, isAdmin, async (req, res) => {
 });
 
 // PATCH endpoint to update court time slots (Admin only)
-router.patch('/:id/time-slots', authMiddleware, isAdmin, async (req, res) => {
+router.patch('/:id/time-slots', isAdmin, async (req, res) => {
     try {
         const courtId = req.params.id;
         const { timeSlots } = req.body; // Assuming timeSlots is an array of time slot objects
@@ -76,7 +76,7 @@ router.patch('/:id/time-slots', authMiddleware, isAdmin, async (req, res) => {
 });
 
 // Delete a court (Admin only)
-router.delete('/:id', authMiddleware, isAdmin, async (req, res) => {
+router.delete('/:id', isAdmin, async (req, res) => {
     try {
         const court = await Court.findByIdAndDelete(req.params.id);
         if (!court) {
