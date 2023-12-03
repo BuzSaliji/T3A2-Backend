@@ -59,6 +59,22 @@ router.patch('/:id', authMiddleware, isAdmin, async (req, res) => {
     }
 });
 
+// PATCH endpoint to update court time slots (Admin only)
+router.patch('/:id/time-slots', authMiddleware, isAdmin, async (req, res) => {
+    try {
+        const courtId = req.params.id;
+        const { timeSlots } = req.body; // Assuming timeSlots is an array of time slot objects
+
+        const updatedCourt = await Court.findByIdAndUpdate(courtId, { timeSlots }, { new: true });
+        if (!updatedCourt) {
+            return res.status(404).json({ error: 'Court not found' });
+        }
+        res.json(updatedCourt);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
 // Delete a court (Admin only)
 router.delete('/:id', authMiddleware, isAdmin, async (req, res) => {
     try {
