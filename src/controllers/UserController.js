@@ -7,6 +7,14 @@ const authMiddleware = require('../functions/authMiddleware');
 // make an instance of a Router
 const router = express.Router();
 
+// Middleware to check if the user is an admin
+const isAdmin = (req, res, next) => {
+    if (!req.user.isAdmin) {
+        return res.status(403).json({ error: 'Access denied' });
+    }
+    next();
+};
+
 
 // GET all users (Admin only)
 router.get('/', authMiddleware, async (req, res) => {
@@ -19,7 +27,7 @@ router.get('/', authMiddleware, async (req, res) => {
   });
 
 // GET localhost:3000/users/laijhjsdaljfdhbsal
-router.get("/:id", async (request, response) => {
+router.get("/:id", authMiddleware, isAdmin, async (request, response) => {
     try {
         let result = await User.findOne({ _id: request.params.id });
         if (result) {
@@ -171,7 +179,7 @@ router.patch("/:id", authMiddleware, async (request, response) => {
 })
 
 // PATCH update user role (Admin only)
-router.patch('/:id/role', authMiddleware, async (req, res) => {
+router.patch('/:id/role', async (req, res) => {
     if (!req.user.isAdmin) {
       return res.status(403).json({ error: 'Access denied.' });
     }
@@ -183,7 +191,7 @@ router.patch('/:id/role', authMiddleware, async (req, res) => {
 
 
 // Search by username
-router.get("/search/username", async (request, response) => {
+router.get("/search/username", authMiddleware, isAdmin, async (request, response) => {
     try {
         const { username } = request.query;
         if (!username) {
@@ -202,7 +210,7 @@ router.get("/search/username", async (request, response) => {
 });
 
 // Search by email
-router.get("/search/email", async (request, response) => {
+router.get("/search/email", authMiddleware, isAdmin, async (request, response) => {
     try {
         const { email } = request.query;
         if (!email) {

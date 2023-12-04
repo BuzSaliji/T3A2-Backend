@@ -13,7 +13,7 @@ const isAdmin = (req, res, next) => {
 };
 
 // Get all courts
-router.get('/', async (req, res) => {
+router.get('/', authMiddleware, async (req, res) => {
     try {
         const courts = await Court.find({});
         res.json(courts);
@@ -23,7 +23,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get a specific court by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', authMiddleware, async (req, res) => {
     try {
         const court = await Court.findById(req.params.id);
         if (!court) {
@@ -54,6 +54,22 @@ router.patch('/:id', authMiddleware, isAdmin, async (req, res) => {
             return res.status(404).json({ error: 'Court not found' });
         }
         res.json(court);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// PATCH endpoint to update court time slots (Admin only)
+router.patch('/:id/time-slots', authMiddleware, isAdmin, async (req, res) => {
+    try {
+        const courtId = req.params.id;
+        const { timeSlots } = req.body; // Assuming timeSlots is an array of time slot objects
+
+        const updatedCourt = await Court.findByIdAndUpdate(courtId, { timeSlots }, { new: true });
+        if (!updatedCourt) {
+            return res.status(404).json({ error: 'Court not found' });
+        }
+        res.json(updatedCourt);
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
