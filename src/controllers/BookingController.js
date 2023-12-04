@@ -27,7 +27,9 @@ router.get('/', authMiddleware, async (req, res) => {
 // Get a specific booking by ID
 router.get('/:id', authMiddleware, async (req, res) => {
   try {
-    const booking = await Booking.findById(req.params.id);
+    const booking = await Booking.findById(req.params.id)
+                                      .populate('user', 'username')
+                                      .populate('court');
     if (!booking) {
       return res.status(404).json({ message: 'Booking not found' });
     }
