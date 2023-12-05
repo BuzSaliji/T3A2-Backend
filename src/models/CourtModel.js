@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const timeSlotSchema = new mongoose.Schema({
     start: Date,
     end: Date
-}, { _id: false }); // _id: false to prevent Mongoose from creating an _id for subdocuments
+}, { _id: false }); 
 
 const courtSchema = new mongoose.Schema({
     name: {

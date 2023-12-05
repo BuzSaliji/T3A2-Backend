@@ -137,7 +137,7 @@ router.get("/regenerate", async (request, response) => {
 router.delete("/:id", authMiddleware, async (request, response) => {
     try {
         const userId = request.params.id;
-        const requestingUser = request.user; // Assuming `request.user` is set by a middleware
+        const requestingUser = request.user;
 
         // Check if the requesting user is the owner or an admin
         if (requestingUser.id !== userId && !requestingUser.isAdmin) {
@@ -160,7 +160,7 @@ router.delete("/:id", authMiddleware, async (request, response) => {
 router.patch("/:id", authMiddleware, async (request, response) => {
     try {
         const userId = request.params.id;
-        const requestingUser = request.user; // Assuming `request.user` is set by a middleware
+        const requestingUser = request.user;
 
         // Check if the requesting user is the owner or an admin
         if (requestingUser.id !== userId && !requestingUser.isAdmin) {
