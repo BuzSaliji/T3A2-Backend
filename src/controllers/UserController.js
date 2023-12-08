@@ -42,7 +42,7 @@ router.get("/:id", authMiddleware, isAdmin, async (request, response) => {
 
 
 // POST localhost:3000/users/
-router.post("/", authMiddleware async (request, response) => {
+router.post("/", authMiddleware, async (request, response) => {
     try {
         let newUser = await User.create(request.body);
         response.status(201).json(newUser);
