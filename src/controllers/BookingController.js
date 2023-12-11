@@ -1,8 +1,6 @@
 const express = require('express');
 const { Booking } = require('../models/BookingModel');
 const authMiddleware = require('../functions/authMiddleware');
-const { getAvailableTimeSlots } = require('../functions/getAvailableTimeslot');
-
 
 const router = express.Router();
 
@@ -109,27 +107,5 @@ router.delete('/:id', authMiddleware, isAdmin, async (req, res) => {
   }
 });
 
-router.get('/available-timeslots', authMiddleware, async (req, res) => {
-  try {
-      const { courtId, date } = req.query;
-
-      // Validate input
-      if (!courtId || !date) {
-          return res.status(400).json({ error: 'Court ID and date are required.' });
-      }
-
-      // Check if courtId is a valid ObjectId
-      if (!mongoose.isValidObjectId(courtId)) {
-          return res.status(400).json({ error: 'Invalid courtId.' });
-      }
-
-      // Fetch available time slots
-      const availableTimeSlots = await getAvailableTimeSlots(courtId, date);
-
-      res.json(availableTimeSlots);
-  } catch (error) {
-      res.status(500).json({ error: error.message });
-  }
-});
 
 module.exports = router;
