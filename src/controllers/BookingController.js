@@ -23,6 +23,29 @@ router.get('/', authMiddleware, async (req, res) => {
   }
 });
 
+// Get bookings by court and date range
+router.get('/by-court', authMiddleware, async (req, res) => {
+  try {
+    const { courtId, startDate, endDate } = req.query;
+
+    // Validate input
+    if (!courtId || !startDate || !endDate) {
+      return res.status(400).json({ error: 'Court ID, start date, and end date are required.' });
+    }
+
+    // Fetch bookings
+    const bookings = await Booking.find({
+      court: courtId,
+      date: { $gte: new Date(startDate), $lte: new Date(endDate) }
+    }).populate('court');
+
+    res.json(bookings);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
 // Get a specific booking by ID
 router.get('/:id', authMiddleware, async (req, res) => {
   try {
