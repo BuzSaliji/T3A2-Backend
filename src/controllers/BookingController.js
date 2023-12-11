@@ -1,6 +1,7 @@
 const express = require('express');
 const { Booking } = require('../models/BookingModel');
 const authMiddleware = require('../functions/authMiddleware');
+const { getAvailableTimeSlots } = require('../functions/getAvailableTimeslot');
 
 
 const router = express.Router();
@@ -12,55 +13,6 @@ const isAdmin = (req, res, next) => {
   }
   next();
 };
-
-const getAvailableTimeSlots = async (courtId, date) => {
-  // Define court operating hours and booking duration (in minutes)
-  const operatingHours = { start: '09:00', end: '21:00' };
-  const bookingDuration = 60;
-
-  // Convert operating hours to minutes
-  const startMinutes = parseInt(operatingHours.start.split(':')[0]) * 60 + parseInt(operatingHours.start.split(':')[1]);
-  const endMinutes = parseInt(operatingHours.end.split(':')[0]) * 60 + parseInt(operatingHours.end.split(':')[1]);
-
-  // Find existing bookings for the court on the given date
-  const existingBookings = await Booking.find({
-      court: courtId,
-      date: { $gte: new Date(date), $lt: new Date(date).setDate(new Date(date).getDate() + 1) }
-  });
-
-  // Convert booking times to minutes for easier comparison
-  const bookedSlots = existingBookings.map(booking => {
-      const start = booking.timeSlot.start.getHours() * 60 + booking.timeSlot.start.getMinutes();
-      const end = booking.timeSlot.end.getHours() * 60 + booking.timeSlot.end.getMinutes();
-      return { start, end };
-  });
-
-  // Generate all possible time slots for the day
-  let availableTimeSlots = [];
-  for (let minutes = startMinutes; minutes < endMinutes; minutes += bookingDuration) {
-      let isAvailable = true;
-
-      // Check if the slot overlaps with any existing bookings
-      for (const slot of bookedSlots) {
-          if ((minutes >= slot.start && minutes < slot.end) || 
-              (minutes + bookingDuration > slot.start && minutes + bookingDuration <= slot.end)) {
-              isAvailable = false;
-              break;
-          }
-      }
-
-      if (isAvailable) {
-          // Convert minutes back to HH:mm format for the available slot
-          const hours = Math.floor(minutes / 60);
-          const mins = minutes % 60;
-          availableTimeSlots.push(`${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`);
-      }
-  }
-
-  return availableTimeSlots;
-};
-
-
 
 
 // Get all bookings
@@ -164,6 +116,11 @@ router.get('/available-timeslots', authMiddleware, async (req, res) => {
       // Validate input
       if (!courtId || !date) {
           return res.status(400).json({ error: 'Court ID and date are required.' });
+      }
+
+      // Check if courtId is a valid ObjectId
+      if (!mongoose.isValidObjectId(courtId)) {
+          return res.status(400).json({ error: 'Invalid courtId.' });
       }
 
       // Fetch available time slots
