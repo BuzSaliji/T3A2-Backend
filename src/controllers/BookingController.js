@@ -33,10 +33,21 @@ router.get('/by-court', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'Court ID, start date, and end date are required.' });
     }
 
+    // Adjust startDate and endDate to cover the full day
+    const startOfDay = new Date(startDate);
+    startOfDay.setHours(0, 0, 0, 0); // Set to beginning of the day
+
+    const endOfDay = new Date(endDate);
+    endOfDay.setHours(23, 59, 59, 999); // Set to end of the day
+
     // Fetch bookings
     const bookings = await Booking.find({
       court: courtId,
-      date: { $gte: new Date(startDate), $lte: new Date(endDate) }
+      date: { $gte: startOfDay, $lte: endOfDay },
+      $or: [
+        { 'timeSlot.start': { $lte: endOfDay } },
+        { 'timeSlot.end': { $gte: startOfDay } }
+      ]
     }).populate('court');
 
     res.json(bookings);
@@ -44,6 +55,8 @@ router.get('/by-court', authMiddleware, async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+
 
 
 // Get a specific booking by ID
