@@ -55,6 +55,7 @@ router.post("/", async (request, response) => {
 // POST localhost:3000/users/login
 // request.body = {identifier: "admin", password: "Password1"}
 // respond with {jwt: "laskdnalksfdnal;fgvkmsngb;sklnmb", valid: true}
+// POST localhost:3000/users/login
 router.post("/login", async (request, response) => {
     try {
         let { username, email, password } = request.body;
@@ -85,8 +86,8 @@ router.post("/login", async (request, response) => {
         // If they provided the correct password, generate a JWT
         let freshJwt = generateJwt(targetUser._id.toString());
 
-        // Respond with the JWT 
-        response.json({ jwt: freshJwt });
+        // Respond with the JWT and user ID
+        response.json({ jwt: freshJwt, userId: targetUser._id });
     } catch (error) {
         response.status(500).json({ error: error.message });
     }
