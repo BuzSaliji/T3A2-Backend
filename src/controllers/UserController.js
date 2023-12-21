@@ -51,6 +51,38 @@ router.post("/", async (request, response) => {
     }
 });
 
+// POST localhost:3000/users/register
+router.post("/register", async (request, response) => {
+    try {
+        const { username, email, password } = request.body;
+
+        if (!username || !email || !password) {
+            return response.status(400).json({ error: "All fields are required" });
+        }
+
+        const existingUser = await User.findOne({ email });
+        
+        if (existingUser) {
+            return response.status(400).json({ error: "User already exists" });
+        }
+
+        const hashedPassword = await comparePassword(password);
+
+        const newUser = new User({
+            username,
+            email,
+            password: hashedPassword
+        });
+        await newUser.save();
+
+        const token = generateJwt(newUser._id.toString());
+
+        response.status(201).json({ user: newUser, token });
+    } catch (error) {
+        response.status(500).json({ error: error.message });
+    }
+});
+
 
 // POST localhost:3000/users/login
 // request.body = {identifier: "admin", password: "Password1"}
