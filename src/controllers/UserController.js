@@ -119,7 +119,12 @@ router.post("/login", async (request, response) => {
         let freshJwt = generateJwt(targetUser._id.toString());
 
         // Respond with the JWT and user ID
-        response.json({ jwt: freshJwt, userId: targetUser._id });
+        response.json({ jwt: freshJwt, 
+            userId: targetUser._id, 
+            user: {
+                isAdmin: targetUser.isAdmin,
+            }
+        });
     } catch (error) {
         response.status(500).json({ error: error.message });
     }
